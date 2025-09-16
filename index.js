@@ -32,6 +32,7 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
     // Send a ping to confirm a successful connection
+    const aboutMe = client.db("portfolioDB").collection("aboutMe");
     const projectsLinks = client
       .db("portfolioDB")
       .collection("portfolioWebLinks");
@@ -81,6 +82,10 @@ async function run() {
     /*----------------------------
     // Get Method
     -----------------------------*/
+    app.get("/about-me", async(req, res) => {
+      const result = await aboutMe.find().toArray();
+      res.send(result)
+    })
     app.get("/projects-links", async (req, res) => {
       const result = await projectsLinks.find().toArray();
       res.send(result);
@@ -152,10 +157,22 @@ async function run() {
     /*----------------------------
     // Patch Method
     -----------------------------*/
+    app.patch("/super-shohag/about/:id", async(req, res) => {
+      const data = req.body;
+      const id = req.params.id;
+      const query = {_id: new ObjectId(id)}
+      const updatedInfo = {
+        $set: {
+          ...data
+        }
+      }
+      const result = await aboutMe.updateOne(query, updatedInfo)
+      res.send(result)
+    })
+
     app.patch("/super-shohag/edit/:id", verifyToken, async (req, res) => {
       const project = req.body;
       const id = req.params.id;
-      console.log(project, id);
       const filter = { _id: new ObjectId(id) };
       const updatedValues = {
         $set: {
@@ -199,10 +216,18 @@ async function run() {
     })
 
     // Delete Project
-    app.delete('/projects-links/:id', async(req, res) => {
+    app.delete('/projects-links/:id', verifyToken, async(req, res) => {
       const id = req.params.id;
       const query = {_id: new ObjectId(id)}
       const result = await projectsLinks.deleteOne(query);
+      res.send(result)
+    })
+
+    // Delete Message
+    app.delete('/messages/:id', verifyToken,  async(req, res) => {
+      const id = req.params.id;
+      const query = {_id: new ObjectId(id)}
+      const result = await messages.deleteOne(query);
       res.send(result)
     })
 
